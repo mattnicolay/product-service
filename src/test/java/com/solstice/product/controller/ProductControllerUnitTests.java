@@ -121,6 +121,7 @@ public class ProductControllerUnitTests {
   public void deleteProduct_ValidId_Code200ReturnsProduct() {
     Product product = getTestProduct();
     when(productService.deleteProduct(1)).thenReturn(product);
+    logger.info(toJson(product));
     mockMvcPerform(DELETE, "/products/1", "", 200, toJson(product));
   }
 
