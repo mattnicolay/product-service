@@ -48,7 +48,7 @@ public class ProductController {
   }
 
   @PostMapping
-  public ResponseEntity<Product> createProduct(@RequestBody String body) throws IOException {
+  public ResponseEntity<Product> createProduct(@RequestBody Product body) {
     Product product = productService.createProduct(body);
     return new ResponseEntity<>(
         product,
@@ -58,8 +58,7 @@ public class ProductController {
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<Product> updateProduct(@PathVariable("id") long id, @RequestBody String body)
-      throws IOException {
+  public ResponseEntity<Product> updateProduct(@PathVariable("id") long id, @RequestBody Product body) {
     Product product = productService.updateProduct(id, body);
     return new ResponseEntity<>(
         product,

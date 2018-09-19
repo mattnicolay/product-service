@@ -1,5 +1,7 @@
 package com.solstice.product.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -37,7 +39,6 @@ public class ProductControllerUnitTests {
   private final String POST = "POST";
   private final String PUT = "PUT";
   private final String DELETE = "DELETE";
-  private final String WRONG_JSON_FORMAT = "{wrong=wrong}";
 
   @MockBean
   private ProductService productService;
@@ -76,16 +77,10 @@ public class ProductControllerUnitTests {
   }
 
   @Test
-  public void createProduct_ValidJson_Code201ReturnsProduct() throws IOException {
+  public void createProduct_ValidJson_Code201ReturnsProduct() {
     Product product = getTestProduct();
-    when(productService.createProduct(toJson(product))).thenReturn(product);
+    when(productService.createProduct(any(Product.class))).thenReturn(product);
     mockMvcPerform(POST, "/products", toJson(product),201, toJson(product));
-  }
-
-  @Test
-  public void createProduct_InvalidJson_Code400EmptyResponse() throws IOException {
-    when(productService.createProduct(WRONG_JSON_FORMAT)).thenThrow(new IOException());
-    mockMvcPerform(POST, "/products", WRONG_JSON_FORMAT,400, "");
   }
 
   @Test
@@ -94,22 +89,16 @@ public class ProductControllerUnitTests {
   }
 
   @Test
-  public void updateProduct_ValidIdAndJson_Code200ReturnsProduct() throws IOException {
+  public void updateProduct_ValidIdAndJson_Code200ReturnsProduct() {
     Product product = getTestProduct();
     String json = toJson(product);
-    when(productService.updateProduct(1, json)).thenReturn(product);
+    when(productService.updateProduct(anyLong(), any(Product.class))).thenReturn(product);
     mockMvcPerform(PUT, "/products/1", json, 200, json);
   }
 
   @Test
   public void updateProduct_InvalidId_Code404EmptyResponse() {
     mockMvcPerform(PUT, "/products/-1", toJson(getTestProduct()), 404, "");
-  }
-
-  @Test
-  public void updateProduct_InvalidJson_Code400EmptyResponse() throws IOException {
-    when(productService.updateProduct(1, WRONG_JSON_FORMAT)).thenThrow(new IOException());
-    mockMvcPerform(PUT, "/products/1", WRONG_JSON_FORMAT, 400, "");
   }
 
   @Test

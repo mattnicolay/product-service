@@ -8,8 +8,6 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.solstice.product.dao.ProductRepository;
 import com.solstice.product.model.Product;
 import java.io.IOException;
@@ -27,7 +25,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class ProductServiceUnitTests {
 
   private Logger logger = LoggerFactory.getLogger(this.getClass());
-  private final String WRONG_JSON_FORMAT = "{wrong=wrong}";
 
   @MockBean
   private ProductRepository productRepository;
@@ -69,30 +66,19 @@ public class ProductServiceUnitTests {
   }
 
   @Test
-  public void createProduct_ValidJson_ReturnsProduct() throws IOException {
-    assertThatProductsAreEqual(getTestProduct(), productService.createProduct(getTestJson()));
-  }
-
-  @Test(expected = IOException.class)
-  public void createProduct_InvalidJson_ThrowsIOException() throws IOException {
-    productService.createProduct(WRONG_JSON_FORMAT);
+  public void createProduct_ValidJson_ReturnsProduct() {
+    assertThatProductsAreEqual(getTestProduct(), productService.createProduct(getTestProduct()));
   }
 
   @Test
   public void updateProduct_ValidIdAndJson_ReturnsProduct() throws IOException {
     when(productRepository.findById(1)).thenReturn(getTestProduct());
-    assertThatProductsAreEqual(getTestProduct(), productService.updateProduct(1, getTestJson()));
+    assertThatProductsAreEqual(getTestProduct(), productService.updateProduct(1, getTestProduct()));
   }
 
   @Test
   public void updateProduct_InvalidId_ReturnsNull() throws IOException {
-    assertThat(productService.updateProduct(-1, getTestJson()), is(nullValue()));
-  }
-
-  @Test(expected = IOException.class)
-  public void updateProduct_InvalidJson_ThrowsIOException() throws IOException {
-    when(productRepository.findById(1)).thenReturn(getTestProduct());
-    productService.updateProduct(1, WRONG_JSON_FORMAT);
+    assertThat(productService.updateProduct(-1, getTestProduct()), is(nullValue()));
   }
 
   @Test
@@ -130,16 +116,5 @@ public class ProductServiceUnitTests {
     products.add(getTestProduct());
 
     return products;
-  }
-
-  private String getTestJson() {
-    ObjectMapper objectMapper = new ObjectMapper();
-    String result = null;
-    try {
-      result = objectMapper.writeValueAsString(getTestProduct());
-    } catch (JsonProcessingException e) {
-      logger.error("JsonProcessingException thrown: {}", e.toString());
-    }
-    return result;
   }
 }
