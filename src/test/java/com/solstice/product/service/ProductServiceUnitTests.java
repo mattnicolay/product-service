@@ -26,7 +26,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 public class ProductServiceUnitTests {
 
-  private Logger logger = LoggerFactory.getLogger(ProductServiceUnitTests.class);
+  private Logger logger = LoggerFactory.getLogger(this.getClass());
   private final String WRONG_JSON_FORMAT = "{wrong=wrong}";
 
   @MockBean
