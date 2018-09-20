@@ -12,10 +12,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.solstice.product.exception.ProductExceptionHandler;
 import com.solstice.product.model.Product;
 import com.solstice.product.service.ProductService;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -48,48 +46,47 @@ public class ProductControllerUnitTests {
   @Before
   public void setup() {
     ProductController productController  = new ProductController(productService);
-    mockMvc = MockMvcBuilders.standaloneSetup(productController)
-        .setControllerAdvice(new ProductExceptionHandler()).build();
+    mockMvc = MockMvcBuilders.standaloneSetup(productController).build();
   }
 
   @Test
-  public void getProducts_Found_Code200ReturnsListOfProducts() {
+  public void getProducts_Found_Code200ReturnsListOfProducts() throws Exception {
     List<Product> products = getTestProductList();
     when(productService.getProducts()).thenReturn(products);
     mockMvcPerform(GET, "/products", "",200, toJson(products));
   }
 
   @Test
-  public void getProducts_NotFound_Code404EmptyResponse() {
-    mockMvcPerform(GET, "/products", "",404, "");
+  public void getProducts_NotFound_Code404EmptyResponse() throws Exception {
+    mockMvcPerform(GET, "/products", "",404, "Resource not found");
   }
 
   @Test
-  public void getProductById_ValidId_Code200ReturnsProduct() {
+  public void getProductById_ValidId_Code200ReturnsProduct() throws Exception {
     Product product = getTestProduct();
     when(productService.getProductById(1)).thenReturn(product);
     mockMvcPerform(GET, "/products/1", "",200, toJson(product));
   }
 
   @Test
-  public void getProductById_InvalidId_Code404EmptyResponse() {
-    mockMvcPerform(GET, "/products/1", "",404, "");
+  public void getProductById_InvalidId_Code404EmptyResponse() throws Exception {
+    mockMvcPerform(GET, "/products/1", "",404, "Resource not found");
   }
 
   @Test
-  public void createProduct_ValidJson_Code201ReturnsProduct() {
+  public void createProduct_ValidJson_Code201ReturnsProduct() throws Exception {
     Product product = getTestProduct();
     when(productService.createProduct(any(Product.class))).thenReturn(product);
     mockMvcPerform(POST, "/products", toJson(product),201, toJson(product));
   }
 
   @Test
-  public void createProduct_EmptyBody_Code400EmptyResponse() {
+  public void createProduct_EmptyBody_Code400EmptyResponse() throws Exception {
     mockMvcPerform(POST, "/products", "",400, "");
   }
 
   @Test
-  public void updateProduct_ValidIdAndJson_Code200ReturnsProduct() {
+  public void updateProduct_ValidIdAndJson_Code200ReturnsProduct() throws Exception {
     Product product = getTestProduct();
     String json = toJson(product);
     when(productService.updateProduct(anyLong(), any(Product.class))).thenReturn(product);
@@ -97,17 +94,17 @@ public class ProductControllerUnitTests {
   }
 
   @Test
-  public void updateProduct_InvalidId_Code404EmptyResponse() {
-    mockMvcPerform(PUT, "/products/-1", toJson(getTestProduct()), 404, "");
+  public void updateProduct_InvalidId_Code404EmptyResponse() throws Exception {
+    mockMvcPerform(PUT, "/products/-1", toJson(getTestProduct()), 404, "Resource not found");
   }
 
   @Test
-  public void updateProduct_EmptyBody_Code400EmptyResponse() {
+  public void updateProduct_EmptyBody_Code400EmptyResponse() throws Exception {
     mockMvcPerform(PUT, "/products/1", "", 400, "");
   }
 
   @Test
-  public void deleteProduct_ValidId_Code200ReturnsProduct() {
+  public void deleteProduct_ValidId_Code200ReturnsProduct() throws Exception {
     Product product = getTestProduct();
     when(productService.deleteProduct(1)).thenReturn(product);
     logger.info(toJson(product));
@@ -115,8 +112,8 @@ public class ProductControllerUnitTests {
   }
 
   @Test
-  public void deleteProduct_InvalidId_Code404EmptyResponse() {
-    mockMvcPerform(DELETE, "/products/-1", "", 404, "");
+  public void deleteProduct_InvalidId_Code404EmptyResponse() throws Exception {
+    mockMvcPerform(DELETE, "/products/-1", "", 404, "Resource not found");
   }
 
 
@@ -144,43 +141,39 @@ public class ProductControllerUnitTests {
   }
 
   private void mockMvcPerform(String method, String endpoint, String requestBody, int expectedStatus,
-      String expectedResponseBody) {
-    try {
-      switch(method){
+      String expectedResponseBody) throws Exception {
+    switch(method){
 
-        case GET:
-          mockMvc.perform(get(endpoint)).andExpect(status().is(expectedStatus))
-              .andExpect(content().json(expectedResponseBody));
-          break;
+      case GET:
+        mockMvc.perform(get(endpoint)).andExpect(status().is(expectedStatus))
+            .andExpect(content().string(expectedResponseBody));
+        break;
 
-        case POST:
-          mockMvc.perform(
-              post(endpoint)
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(requestBody)
-          ).andExpect(status().is(expectedStatus))
-              .andExpect(content().json(expectedResponseBody));
-          break;
+      case POST:
+        mockMvc.perform(
+            post(endpoint)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody)
+        ).andExpect(status().is(expectedStatus))
+            .andExpect(content().string(expectedResponseBody));
+        break;
 
-        case PUT:
-          mockMvc.perform(
-              put(endpoint)
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(requestBody)
-          ).andExpect(status().is(expectedStatus))
-              .andExpect(content().json(expectedResponseBody));
-          break;
+      case PUT:
+        mockMvc.perform(
+            put(endpoint)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody)
+        ).andExpect(status().is(expectedStatus))
+            .andExpect(content().string(expectedResponseBody));
+        break;
 
-        case DELETE:
-          mockMvc.perform(delete(endpoint)).andExpect(status().is(expectedStatus))
-              .andExpect(content().json(expectedResponseBody));
-          break;
+      case DELETE:
+        mockMvc.perform(delete(endpoint)).andExpect(status().is(expectedStatus))
+            .andExpect(content().string(expectedResponseBody));
+        break;
 
-        default:
-          logger.error("Unknown method '{}' given to mockMvcPerform", method);
-      }
-    } catch (Exception e) {
-      logger.error("Exception thrown: {}", e.toString());
+      default:
+        logger.error("Unknown method '{}' given to mockMvcPerform", method);
     }
   }
 }

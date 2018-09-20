@@ -1,5 +1,7 @@
 package com.solstice.product.controller;
 
+import com.solstice.product.exception.HTTP400Exception;
+import com.solstice.product.exception.HTTP404Exception;
 import com.solstice.product.model.Product;
 import com.solstice.product.service.ProductService;
 import java.io.IOException;
@@ -15,11 +17,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/products")
-public class ProductController {
+public class ProductController extends AbstractRestController{
 
   private ProductService productService;
 
@@ -28,52 +31,39 @@ public class ProductController {
   }
 
   @GetMapping
-  public ResponseEntity<List<Product>> getProducts() {
+  public @ResponseBody List<Product> getProducts() {
     List<Product> products = productService.getProducts();
-    return new ResponseEntity<>(
-        products,
-        new HttpHeaders(),
-        products.isEmpty() ? HttpStatus.NOT_FOUND : HttpStatus.OK
-    );
+    if(products.isEmpty()) {
+      throw new HTTP404Exception("Resource not found");
+    }
+    return AbstractRestController.checkResourceFound(products);
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<Product> getProductById(@PathVariable("id") long id) {
+  public @ResponseBody Product getProductById(@PathVariable("id") long id) {
     Product product = productService.getProductById(id);
-    return new ResponseEntity<>(
-        product,
-        new HttpHeaders(),
-        product == null ? HttpStatus.NOT_FOUND : HttpStatus.OK
-    );
+    return AbstractRestController.checkResourceFound(product);
   }
 
   @PostMapping
-  public ResponseEntity<Product> createProduct(@RequestBody Product body) {
+  @ResponseStatus(HttpStatus.CREATED)
+  public @ResponseBody Product createProduct(@RequestBody Product body) {
     Product product = productService.createProduct(body);
-    return new ResponseEntity<>(
-        product,
-        new HttpHeaders(),
-        product == null ? HttpStatus.INTERNAL_SERVER_ERROR : HttpStatus.CREATED
-    );
+    if (product == null) {
+      throw new HTTP400Exception("Could not create product");
+    }
+    return product;
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<Product> updateProduct(@PathVariable("id") long id, @RequestBody Product body) {
+  public @ResponseBody Product updateProduct(@PathVariable("id") long id, @RequestBody Product body) {
     Product product = productService.updateProduct(id, body);
-    return new ResponseEntity<>(
-        product,
-        new HttpHeaders(),
-        product == null ? HttpStatus.NOT_FOUND : HttpStatus.OK
-    );
+    return AbstractRestController.checkResourceFound(product);
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<Product> deleteProduct(@PathVariable("id") long id) {
+  public @ResponseBody Product deleteProduct(@PathVariable("id") long id) {
     Product product = productService.deleteProduct(id);
-    return new ResponseEntity<>(
-        product,
-        new HttpHeaders(),
-        product == null ? HttpStatus.NOT_FOUND : HttpStatus.OK
-    );
+    return AbstractRestController.checkResourceFound(product);
   }
 }
